@@ -423,8 +423,8 @@ def check_awesome_proposals() -> None:
         FTC,
     ):
         require(needle in second, "proposal 02 missing: {0}".format(needle))
-    require("ready-to-paste PR body" in first.lower(), "proposal 01 has no PR body")
-    require("ready-to-paste PR body" in second.lower(), "proposal 02 has no PR body")
+    require("ready-to-paste pr body" in first.lower(), "proposal 01 has no PR body")
+    require("ready-to-paste pr body" in second.lower(), "proposal 02 has no PR body")
 
 
 def check_no_external_imports() -> None:
