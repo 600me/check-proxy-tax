@@ -1,7 +1,7 @@
 # PR Proposal 02 — awesome-python-testing
 
-Internal submission package for the Python testing/tooling list. The
-ready-to-paste PR body is in the fenced block below.
+Submission package for the Python testing/tooling list. The ready-to-paste PR
+body is in the fenced block below.
 
 ## Target
 
@@ -130,9 +130,9 @@ No tracking or affiliate link is included in the list entry above.
 7. If the maintainer asks for append-only ordering, move the line to the end
    of `Tools`; do not reword it into marketing copy.
 
-## Maintainer objection handling
+## Maintainer FAQ
 
-| Likely objection | Factual response |
+| Question | Factual response |
 | --- | --- |
 | "This is a proxy seller's tool." | It does not sell, route, or provision proxies. It measures HTTP responses from one URL and has no account system. The list entry has no tracking URL. |
 | "This is not a testing tool." | Correct that it is not a test framework. It is proposed for `Tools` because it turns live-endpoint flakiness into exit codes and JSON assertions for integration tests. If that is out of scope, close the PR. |

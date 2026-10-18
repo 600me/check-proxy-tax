@@ -21,8 +21,8 @@ at one URL, classifies every response as usable or blocked, and reports:
 - p50 / p95 latency and total bytes transferred;
 - status-code and failure-reason breakdown.
 
-It is one Python file using only the standard library. No account, no API key,
-no external dependencies, no background service.
+It is a single core module using only the standard library. No account, no API
+key, no external dependencies, no background service.
 
 ## Install
 

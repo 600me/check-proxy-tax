@@ -1,7 +1,7 @@
 # PR Proposal 01 — awesome-web-scraping
 
-Internal submission package. Do not paste this whole file into GitHub; the
-ready-to-use PR body is in the fenced block below.
+Submission package for a one-line addition to the list. Do not paste this whole
+file into GitHub; the ready-to-use PR body is in the fenced block below.
 
 ## Target
 
@@ -141,9 +141,9 @@ date.
 8. If a maintainer prefers the entry at the end of a different category,
    accept the placement change; the description and link stay unchanged.
 
-## Maintainer objection handling
+## Maintainer FAQ
 
-| Likely objection | Factual response |
+| Question | Factual response |
 | --- | --- |
 | "This is a promotional tool." | The list entry contains no tracking URL. The CLI is MIT licensed, has no account or upsell, and the README discloses its benchmark link under FTC language. |
 | "Repo is too new." | Wait until 2026-11-19 before submitting. |
