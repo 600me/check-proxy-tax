@@ -439,6 +439,7 @@ def check_no_external_imports() -> None:
         "json",
         "math",
         "socket",
+        "statistics",
         "sys",
         "time",
         "typing",

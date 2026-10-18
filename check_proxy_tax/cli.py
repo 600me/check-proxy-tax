@@ -12,6 +12,7 @@ import argparse
 import json
 import math
 import socket
+import statistics
 import sys
 import time
 import urllib.error
@@ -161,6 +162,8 @@ def percentile(values: Sequence[float], pct: float) -> Optional[float]:
     ordered = sorted(values)
     if len(ordered) == 1:
         return ordered[0]
+    if pct == 50:
+        return float(statistics.median(ordered))
     rank = (len(ordered) - 1) * (pct / 100.0)
     lower = int(math.floor(rank))
     upper = int(math.ceil(rank))
