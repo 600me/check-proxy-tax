@@ -28,21 +28,31 @@ key, no external dependencies, no background service.
 
 Python 3.8 or newer.
 
+Install the released wheel directly — no clone, no build step:
+
+```bash
+pip install https://github.com/600me/check-proxy-tax/releases/download/v1.0.0/check_proxy_tax-1.0.0-py3-none-any.whl
+check-proxy-tax --help
+```
+
+The standard sdist is also attached to the same release:
+
+```bash
+pip install https://github.com/600me/check-proxy-tax/releases/download/v1.0.0/check_proxy_tax-1.0.0.tar.gz
+```
+
+From a checkout, either install it or run the module in place:
+
 ```bash
 git clone https://github.com/600me/check-proxy-tax.git
 cd check-proxy-tax
 python3 -m pip install .
-check-proxy-tax --help
-```
-
-You can also run it straight from a checkout without installing:
-
-```bash
 python3 -m check_proxy_tax.cli --url https://example.com --requests 5
 ```
 
-The package is PyPI-ready (`python3 -m build` produces a wheel and sdist), but
-installing from source is the supported path until the first PyPI release.
+Both artifacts are built by the stdlib-only `build_release.py` (`python3 build_release.py`)
+and verified with `pip install --no-deps --target <tmpdir>` before upload, so the wheel
+metadata, `RECORD` hashes and `check-proxy-tax` entry point are PEP 427 compliant.
 
 ## Quick start
 
@@ -55,7 +65,7 @@ check-proxy-tax \
 ```
 
 ```text
-check-proxy-tax 0.1.0 - proxy economics audit
+check-proxy-tax 1.0.0 - proxy economics audit
 
 +---------------------+------------------------------------------+
 | METRIC              | VALUE                                    |
@@ -168,7 +178,7 @@ or a CI artifact. Diagnostics never share that stream.
 ```json
 {
   "tool": "check-proxy-tax",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "url": "https://example.com/product/123",
   "marker": "Add to cart",
   "requests": 20,

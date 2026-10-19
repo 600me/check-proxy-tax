@@ -23,7 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 BENCHMARK_URL = (
     "https://scrape.mybskm.top/?utm_source=cli&utm_content=check-proxy-tax"
