@@ -1,0 +1,30 @@
+{
+  "name": "check-proxy-tax",
+  "version": "1.0.0",
+  "description": "Zero-dependency CLI that audits real proxy and anti-bot cost: usable rate, latency, and effective price per 1,000 usable requests.",
+  "main": "bin/cli.js",
+  "bin": {
+    "check-proxy-tax": "bin/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/600me/check-proxy-tax.git"
+  },
+  "keywords": [
+    "web-scraping",
+    "proxy",
+    "anti-bot",
+    "benchmark",
+    "cost-calculator",
+    "residential-proxy"
+  ],
+  "author": "600me",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/600me/check-proxy-tax/issues"
+  },
+  "homepage": "https://scrape.mybskm.top/?utm_source=npx&utm_content=check-proxy-tax",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
