@@ -31,7 +31,7 @@ Python 3.8 or newer.
 Install the released wheel directly — no clone, no build step:
 
 ```bash
-pip install https://github.com/600me/check-proxy-tax/releases/download/v1.0.0/check_proxy_tax-1.0.0-py3-none-any.whl
+pip install check-proxy-tax
 check-proxy-tax --help
 ```
 
