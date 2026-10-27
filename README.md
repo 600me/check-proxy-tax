@@ -270,6 +270,14 @@ Public benchmark and provider comparison:
 
 FTC Disclosure: Benchmark links may include affiliate tracking.
 
+## Related Open-Source Pricing & TCO Calculators
+
+- [ScraperAPI Pricing & Cost Calculator](https://github.com/600me/scraperapi-pricing-coupons) — Calculate API credit tiers, monthly vs annual savings, and overage budgets.
+- [Decodo (Smartproxy) Bandwidth Cost Calculator](https://github.com/600me/decodo-smartproxy-pricing-coupons) — Estimate residential proxy gigabyte pricing and volume tiers.
+- [Firstbase US Company Formation & Annual Compliance Calculator](https://github.com/600me/firstbase-promo-code-pricing) — Model formation and ongoing compliance costs for non-US founders.
+- [RunPod GPU Cloud Pricing & Job Estimator](https://github.com/600me/runpod-gpu-pricing-coupons) — Estimate cloud GPU hourly and monthly run rates across Ada and Hopper architectures.
+- [Vast.ai GPU Rental & Interruption TCO Estimator](https://github.com/600me/vastai-gpu-pricing-coupons) — Compare on-demand vs interruptible compute pricing and reliability trade-offs.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
