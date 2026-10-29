@@ -286,13 +286,66 @@ class CliTestCase(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertIn("check-proxy-tax {0}".format(__version__), result.stdout)
 
+    def test_compare_providers_table(self):
+        result = self.run_cli("--compare-providers")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = result.stdout
+        self.assertIn("check-proxy-tax", output)
+        for brand in (
+            "Decodo",
+            "Webshare",
+            "9Proxy",
+            "Pawns.app",
+            "PacketStream",
+            "ScraperAPI",
+        ):
+            self.assertIn(brand, output)
+        self.assertIn("0% BLOCKED", output)
+        self.assertIn("50% BLOCKED", output)
+        self.assertIn("Benchmark & provider matrix: " + BENCHMARK_URL, output)
+        self.assertIn(FTC_DISCLOSURE, output)
+        self.assertTrue(output.isascii(), "compare table must stay ASCII")
+
+    def test_compare_providers_json(self):
+        result = self.run_cli("--compare-providers", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data["tool"], "check-proxy-tax")
+        self.assertEqual(data["version"], __version__)
+        self.assertEqual(data["benchmark_url"], BENCHMARK_URL)
+        self.assertEqual(data["ftc_disclosure"], FTC_DISCLOSURE)
+        names = [row["provider"] for row in data["providers"]]
+        self.assertEqual(
+            names,
+            ["Decodo", "Webshare", "9Proxy", "Pawns.app", "PacketStream", "ScraperAPI"],
+        )
+        for row in data["providers"]:
+            self.assertIn("nominal_price_per_1k", row)
+            self.assertEqual(set(row["scenarios"]), {
+                "tax_0pct", "tax_10pct", "tax_30pct", "tax_50pct",
+            })
+            for scenario in row["scenarios"].values():
+                self.assertIn("cost_per_1m_usable", scenario)
+                self.assertGreater(scenario["cost_per_1m_usable"], 0)
+        decodo = data["providers"][0]
+        self.assertAlmostEqual(
+            decodo["scenarios"]["tax_10pct"]["cost_per_1m_usable"],
+            round(0.84 / 0.9 * 1000, 2),
+        )
+
+    def test_compare_providers_allows_missing_url_and_url_error_exits_three(self):
+        result = self.run_cli("--compare-providers")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        missing_url = self.run_cli("--requests", "5")
+        self.assertEqual(missing_url.returncode, 3, missing_url.stderr)
+        self.assertIn("--url is required", missing_url.stderr)
+
     def test_invalid_arguments_exit_three(self):
         cases = (
             ("--url", self.base_url + "/ok", "--requests", "0"),
             ("--url", self.base_url + "/ok", "--concurrency", "0"),
             ("--url", self.base_url + "/ok", "--timeout", "0"),
             ("--url", "ftp://example.com/file"),
-            (),
         )
         for case in cases:
             with self.subTest(args=case):

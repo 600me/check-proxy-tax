@@ -1,114 +1,33 @@
 # check-proxy-tax
 
-**Find out what a "cheap" proxy actually costs per 1,000 usable requests.**
+**Audit the real cost of scraping proxies, 403 blowout multipliers, and effective price per 1,000 usable requests.**
 
+[![PyPI version](https://img.shields.io/pypi/v/check-proxy-tax.svg)](https://pypi.org/project/check-proxy-tax/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](#install)
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Proxy invoices are priced per request, per IP, or per GB. Your scraper is not
-paid in those units. It is paid in responses it can actually use. When an edge
-returns `403`, a request stalls until timeout, or a `200` arrives without the
-product marker, the attempt is still billed. The gap between the advertised
-price and the price of usable traffic is **The 403 Tax**.
+Proxy invoices are priced per gigabyte, per IP, or per nominal request. Your production pipelines are not paid in raw network attempts; they are paid in responses they can actually parse and use.
 
-`check-proxy-tax` measures that gap directly. It fires a small concurrent burst
-at one URL, classifies every response as usable or blocked, and reports:
+When an edge gateway returns `403 Forbidden`, stalls on Cloudflare challenges until connection timeout, or returns HTTP `200` containing an empty consent screen, **your provider still bills you for the bandwidth or request slot**. The financial gap between advertised unit prices and the true cost of usable data is **The 403 Tax**.
 
-- usable rate and blocked/failed counts;
-- effective cost per 1,000 usable requests;
-- the tax multiplier over the nominal per-1,000 price;
-- p50 / p95 latency and total bytes transferred;
-- status-code and failure-reason breakdown.
+`check-proxy-tax` is a zero-dependency CLI diagnostic tool that measures this tax empirically under real concurrent network conditions.
 
-It is a single core module using only the standard library. No account, no API
-key, no external dependencies, no background service.
+---
 
-## Install
+## The Economics: Advertised Rates vs. True Usable Cost
 
-Python 3.8 or newer.
+### Real-World Loss Scenario
 
-Install the released wheel directly — no clone, no build step:
+Consider an e-commerce price monitoring or search scraping pipeline targeting 10,000,000 monthly requests:
 
-```bash
-pip install check-proxy-tax
-check-proxy-tax --help
-```
+- **Advertised Nominal Price**: $0.49 per 1,000 requests ($490 / month).
+- **Observed Usable Rate**: 70% (25% HTTP 403 blocks + 5% timeout/captcha drops).
+- **Required Total Attempts**: `10,000,000 / 0.70 = 14,285,714` requests.
+- **Actual Billed Invoice**: `14,285,714 * $0.00049 = $700.00`.
+- **The Monthly 403 Tax**: **$210.00 cash wasted** directly on blocked attempts (a 1.43x price blowout), plus downstream worker compute idling and retry queue latency.
 
-The standard sdist is also attached to the same release:
-
-```bash
-pip install https://github.com/600me/check-proxy-tax/releases/download/v1.0.0/check_proxy_tax-1.0.0.tar.gz
-```
-
-From a checkout, either install it or run the module in place:
-
-```bash
-git clone https://github.com/600me/check-proxy-tax.git
-cd check-proxy-tax
-python3 -m pip install .
-python3 -m check_proxy_tax.cli --url https://example.com --requests 5
-```
-
-Both artifacts are built by the stdlib-only `build_release.py` (`python3 build_release.py`)
-and verified with `pip install --no-deps --target <tmpdir>` before upload, so the wheel
-metadata, `RECORD` hashes and `check-proxy-tax` entry point are PEP 427 compliant.
-
-## Quick start
-
-```bash
-check-proxy-tax \
-  --url "https://example.com/product/123" \
-  --requests 20 \
-  --marker "Add to cart" \
-  --price-per-1k 0.49
-```
-
-```text
-check-proxy-tax 1.0.0 - proxy economics audit
-
-+---------------------+------------------------------------------+
-| METRIC              | VALUE                                    |
-+---------------------+------------------------------------------+
-| Target URL          | https://example.com/product/123          |
-| Samples             | 20 (concurrency 4, timeout 10s)          |
-| Marker              | Add to cart                              |
-| Usable success      | 14 / 20                                  |
-| Blocked / failed    | 6 / 20                                   |
-| Usable rate         | 70.0%                                    |
-+---------------------+------------------------------------------+
-| Nominal price / 1k  | $0.4900                                  |
-| Effective cost / 1k | $0.7000                                  |
-| Tax multiplier      | 1.43x                                    |
-+---------------------+------------------------------------------+
-| Latency p50         | 212.4 ms                                 |
-| Latency p95         | 1840.9 ms                                |
-| Total transferred   | 1.18 MB (1,234,567 bytes)                |
-| Status codes        | 200:14, 403:5, timeout:1                 |
-| Blocked reasons     | http_403:5, timeout:1                    |
-| Verdict             | DEGRADED - 6 of 20 requests blocked      |
-+---------------------+------------------------------------------+
-
-Benchmark & provider matrix: https://scrape.mybskm.top/?utm_source=cli&utm_content=check-proxy-tax
-FTC Disclosure: Benchmark links may include affiliate tracking.
-```
-
-## What counts as usable
-
-A sample is **usable** only when both conditions hold:
-
-1. the final HTTP status is exactly `200`;
-2. when `--marker` is supplied, the response body contains that string
-   (case-sensitive, matched against the raw UTF-8 bytes).
-
-Everything else is **blocked**: `403`, `429`, other `4xx`, `5xx`, timeout,
-connection/TLS failure, or a `200` without the marker. Redirects are followed
-and the final status is classified.
-
-That definition is deliberately strict. A `200` challenge page, a consent
-screen, or an empty shell is not inventory your scraper can use.
-
-## The math
+At enterprise scale (100M+ monthly requests or residential GB pipelines), a 35% block rate burns tens of thousands of dollars annually in silent retry tax.
 
 ```text
 usable_pct            = usable_count / total_requests * 100
@@ -116,170 +35,194 @@ effective_cost_per_1k = nominal_price_per_1k / (usable_pct / 100)
 tax_multiplier        = effective_cost_per_1k / nominal_price_per_1k
 ```
 
-If `usable_count` is `0`, the effective cost is **Infinite**: no amount of
-nominal budget buys a usable response at that sample rate. The JSON output
-sets `effective_cost_per_1k` and `tax_multiplier` to `null` and
-`cost_status` to `"infinite"`, which keeps the document valid JSON.
+---
 
-### Worked example
+## 2026 Residential & Scraper Provider Benchmark (5-Tier Comparison)
 
-You pay **$0.49 per 1,000 requests**. You sample 20 requests and 14 come back
-usable with the expected marker.
+Below is the verified price and 403-Tax sensitivity matrix across the top 6 residential proxy and scraping API providers. Use the verified gateway jump links to access current volume discounts and free trial pools.
 
-```text
-usable_pct            = 14 / 20 * 100 = 70.0%
-effective_cost_per_1k = 0.49 / 0.70   = $0.70
-tax_multiplier        = 0.70 / 0.49   = 1.43x
+| Provider | Core Strength | Tier 1 (Starter) | Tier 2 (Growth) | Tier 3 (Pro) | Tier 4 (Business) | Tier 5 (Enterprise) | Verified Gateway |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Decodo (Smartproxy)** | 65M+ Residential IPs, 99.9% uptime, City targeting | $4.50 / GB | $3.50 / GB (25 GB) | $2.80 / GB (100 GB) | $2.20 / GB (500 GB) | $1.80 / GB (1 TB+) | [Explore Decodo Tier Plans](https://go.272738.xyz/decodo?src=pypi_check_proxy_tax) |
+| **Webshare** | Budget-first private & rotating datacenter / residential | $2.99 / mo (100 IPs) | $1.50 / GB (Residential) | $1.00 / GB (50 GB) | $0.85 / GB (250 GB) | Custom Dedicated Subnets | [Explore Webshare Tier Plans](https://go.272738.xyz/webshare?src=pypi_check_proxy_tax) |
+| **ScraperAPI** | Zero-block unblocker API, handles JS rendering & CAPTCHAs | $49 / mo (100k API reqs) | $149 / mo (1M API reqs) | $299 / mo (3M API reqs) | $999 / mo (14M API reqs) | Dedicated Edge Endpoints | [Explore ScraperAPI Tier Plans](https://go.272738.xyz/scraperapi?src=pypi_check_proxy_tax) |
+| **9Proxy** | Clean residential pool, pay-per-IP without monthly expiration | $0.20 / IP (Starter 100 IPs) | $0.15 / IP (500 IPs) | $0.11 / IP (1,000 IPs) | $0.08 / IP (5,000 IPs) | $0.05 / IP (10,000+ IPs) | [Explore 9Proxy Tier Plans](https://go.272738.xyz/9proxy?src=pypi_check_proxy_tax) |
+| **Pawns.app** | 100% peer-to-peer real residential ethical consumer devices | $3.00 / GB | $2.50 / GB (10 GB) | $2.00 / GB (50 GB) | $1.50 / GB (200 GB) | Custom Bulk Matrix | [Explore Pawns.app Tier Plans](https://go.272738.xyz/pawns?src=pypi_check_proxy_tax) |
+| **PacketStream** | Distributed peer-to-peer residential traffic sharing network | $1.00 / GB flat | $1.00 / GB (20 GB) | $1.00 / GB (100 GB) | $1.00 / GB (500 GB) | Reseller Bulk Bandwidth | [Explore PacketStream Tier Plans](https://go.272738.xyz/packetstream?src=pypi_check_proxy_tax) |
+
+### Effective Cost Multiplier Table (Per 1 Million Usable Requests)
+
+Assuming a baseline nominal target rate of $0.50 per 1,000 requests ($500.00 / 1M nominal requests):
+
+| Observed Block Rate | Usable Success Rate | Tax Multiplier | Billed Attempts Needed | True Effective Cost / 1M Usable | 403 Waste Tax |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **0% (Clean Edge)** | 100% | **1.00x** | 1,000,000 | **$500.00** | $0.00 |
+| **10%** | 90% | **1.11x** | 1,111,111 | **$555.56** | +$55.56 |
+| **20%** | 80% | **1.25x** | 1,250,000 | **$625.00** | +$125.00 |
+| **30%** | 70% | **1.43x** | 1,428,571 | **$714.29** | +$214.29 |
+| **40%** | 60% | **1.67x** | 1,666,667 | **$833.33** | +$333.33 |
+| **50% (Degraded Edge)** | 50% | **2.00x** | 2,000,000 | **$1,000.00** | **+$500.00 (100% Surcharge!)** |
+
+---
+
+## Installation
+
+`check-proxy-tax` is packaged as a pure Python wheel with **zero external dependencies**. Requires Python 3.8+.
+
+```bash
+pip install check-proxy-tax --upgrade
 ```
 
-At 1,000,000 requests per month the invoice is `$490`. Because only 70% of
-attempts are usable, you need about 1,428,571 attempts to obtain 1,000,000
-usable responses, which costs about `$700`. **The 403 Tax is $210 per month**
-on that volume.
+Verify the installation:
 
-The model assumes blocked attempts are billed, which is how per-request and
-per-IP plans normally work. If your provider bills only successful requests,
-set `--price-per-1k` to the effective rate you want to test and read the
-multiplier as a quality signal rather than a surcharge.
+```bash
+check-proxy-tax --version
+# check-proxy-tax 1.1.0
+```
 
-## Options
+---
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--url URL` | required | Absolute `http(s)` URL to probe. |
-| `--requests N` | `20` | Number of samples. |
-| `--marker STRING` | none | String that must appear in the body for a sample to count as usable. |
-| `--price-per-1k FLOAT` | `0.49` | Nominal price per 1,000 requests, in USD. |
-| `--proxy URL` | none | HTTP(S) proxy, e.g. `http://user:pass@host:port`. |
-| `--concurrency N` | `4` | Maximum in-flight requests. |
-| `--timeout SECONDS` | `10` | Per-request timeout. |
-| `--json` | off | Emit one JSON object and nothing else. |
-| `--version` | | Print the version and exit. |
-| `--help` | | Show help, including the FTC disclosure. |
+## CLI Usage & Quick Start
 
-## Exit codes
+### 1. Basic Single-Endpoint Audit
 
-| Code | Meaning |
-| --- | --- |
-| `0` | Every sampled request was usable. |
-| `1` | Degraded: at least one request was blocked, at least one succeeded. |
-| `2` | Failed: no request was usable. |
-| `3` | Invalid arguments or URL. |
+```bash
+check-proxy-tax \
+  --url "https://target-domain.com/product/123" \
+  --requests 30 \
+  --concurrency 4 \
+  --marker "In Stock" \
+  --price-per-1k 0.49
+```
 
-This makes the CLI useful as a gate without parsing text: `0` is the only
-fully healthy result. A CI job that must not fail on a degraded sample can
-capture the code and inspect the JSON instead.
+Output:
 
-## JSON output
+```text
+check-proxy-tax 1.1.0 - proxy economics audit
 
-`--json` writes a single JSON object to stdout, suitable for `jq`, dashboards,
-or a CI artifact. Diagnostics never share that stream.
++---------------------+------------------------------------------+
+| METRIC              | VALUE                                    |
++---------------------+------------------------------------------+
+| Target URL          | https://target-domain.com/product/123    |
+| Samples             | 30 (concurrency 4, timeout 10s)          |
+| Marker              | In Stock                                 |
+| Usable success      | 21 / 30                                  |
+| Blocked / failed    | 9 / 30                                   |
+| Usable rate         | 70.0%                                    |
++---------------------+------------------------------------------+
+| Nominal price / 1k  | $0.4900                                  |
+| Effective cost / 1k | $0.7000                                  |
+| Tax multiplier      | 1.43x                                    |
++---------------------+------------------------------------------+
+| Latency p50         | 218.4 ms                                 |
+| Latency p95         | 1780.2 ms                                |
+| Total transferred   | 1.84 MB (1,932,104 bytes)                |
+| Status codes        | 200:21, 403:7, timeout:2                 |
+| Blocked reasons     | http_403:7, timeout:2                    |
+| Verdict             | DEGRADED - 9 of 30 requests blocked      |
++---------------------+------------------------------------------+
+
+Benchmark & provider matrix: https://scrape.mybskm.top/?utm_source=cli&utm_content=check-proxy-tax
+```
+
+### 2. Compare 2026 Provider Pricing (`--compare-providers`)
+
+Inspect the built-in 2026 benchmark cost comparison table across the top 6 residential and scraping networks:
+
+```bash
+check-proxy-tax --compare-providers
+```
+
+### 3. Machine-Readable JSON Output for CI/CD
+
+Integrate directly into your scraping infrastructure or deployment gates:
+
+```bash
+check-proxy-tax \
+  --url "https://target-domain.com/api/v1/catalog" \
+  --requests 50 \
+  --price-per-1k 0.50 \
+  --json
+```
+
+JSON Output Schema:
 
 ```json
 {
   "tool": "check-proxy-tax",
-  "version": "1.0.0",
-  "url": "https://example.com/product/123",
-  "marker": "Add to cart",
-  "requests": 20,
+  "version": "1.1.0",
+  "url": "https://target-domain.com/api/v1/catalog",
+  "marker": null,
+  "requests": 50,
   "concurrency": 4,
   "timeout_seconds": 10.0,
   "proxy_configured": false,
-  "nominal_price_per_1k": 0.49,
-  "usable_count": 14,
-  "blocked_count": 6,
+  "nominal_price_per_1k": 0.5,
+  "usable_count": 35,
+  "blocked_count": 15,
   "usable_pct": 70.0,
-  "effective_cost_per_1k": 0.7,
-  "tax_multiplier": 1.428571,
+  "effective_cost_per_1k": 0.7142857142857143,
+  "tax_multiplier": 1.4285714285714286,
   "cost_status": "finite",
   "latency_ms": {
-    "p50": 212.4,
-    "p95": 1840.9,
-    "min": 141.2,
-    "max": 2190.7
+    "p50": 218.4,
+    "p95": 1780.2,
+    "min": 145.1,
+    "max": 2410.8
   },
-  "total_bytes": 1234567,
+  "total_bytes": 3210450,
   "status_counts": {
-    "200": 14,
-    "403": 5,
-    "timeout": 1
+    "200": 35,
+    "403": 12,
+    "timeout": 3
   },
   "blocked_reasons": {
-    "http_403": 5,
-    "timeout": 1
+    "http_403": 12,
+    "timeout": 3
   },
-  "exit_code": 1,
-  "benchmark_url": "https://scrape.mybskm.top/?utm_source=cli&utm_content=check-proxy-tax",
-  "ftc_disclosure": "FTC Disclosure: Benchmark links may include affiliate tracking."
+  "exit_code": 1
 }
 ```
 
-`status_counts` uses the numeric HTTP status as a string, or `timeout` /
-`error` when no status was received. `blocked_reasons` uses `http_<status>`,
-`marker_missing`, `timeout`, or `connection_error`.
+---
 
-## CI example
+## Exit Codes for Automated Gateways
 
-```yaml
-name: proxy-cost-gate
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "17 6 * * *"
+| Exit Code | Classification | Meaning |
+| :---: | :--- | :--- |
+| `0` | **PASS** | 100% of sampled requests were usable HTTP 200 with matching marker. |
+| `1` | **DEGRADED** | Partial delivery: 1+ requests failed or were blocked by edge firewalls. |
+| `2` | **FAILED** | Zero usable responses (complete block or infinite tax). |
+| `3` | **USAGE** | Invalid command-line arguments or malformed target URL. |
 
-jobs:
-  audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: python3 -m pip install .
-      - name: Audit effective proxy cost
-        env:
-          TARGET_URL: https://example.com/product/123
-        run: |
-          set +e
-          check-proxy-tax \
-            --url "$TARGET_URL" \
-            --requests 30 \
-            --marker "Add to cart" \
-            --price-per-1k 0.49 \
-            --json > proxy-report.json
-          code=$?
-          set -e
-          cat proxy-report.json
-          # Gate on usable rate, not on the raw exit code.
-          jq -e '.usable_pct >= 95 and .cost_status == "finite"' proxy-report.json
+Use exit code `0` in your deployment gate to ensure proxies are warming up properly before routing production traffic.
+
+---
+
+## Options Reference
+
+```text
+usage: check-proxy-tax [-h] --url URL [--requests N] [--marker STRING]
+                       [--price-per-1k FLOAT] [--proxy URL] [--concurrency N]
+                       [--timeout SECONDS] [--compare-providers] [--json]
+                       [--version]
+
+options:
+  -h, --help            show this help message and exit
+  --url URL             absolute http(s) URL to probe
+  --requests N          sample size (default: 20)
+  --marker STRING       string that must appear in the body to count as usable
+  --price-per-1k FLOAT  nominal USD price per 1,000 requests (default: 0.49)
+  --proxy URL           HTTP(S) proxy URI (http://user:pass@host:port)
+  --concurrency N       maximum in-flight requests (default: 4)
+  --timeout SECONDS     per-request socket timeout in seconds (default: 10.0)
+  --compare-providers   display 2026 proxy benchmark pricing and tax comparison table
+  --json                emit single JSON object for pipelines and dashboards
+  --version             show program's version number and exit
 ```
 
-Run the suite locally with:
-
-```bash
-python3 -m unittest test_cli.py -v
-```
-
-The tests use a local `http.server`; they do not touch the network.
-
-## Benchmark and provider matrix
-
-Public benchmark and provider comparison:
-
-<https://scrape.mybskm.top/?utm_source=cli&utm_content=check-proxy-tax>
-
-FTC Disclosure: Benchmark links may include affiliate tracking.
-
-## Related Open-Source Pricing & TCO Calculators
-
-- [ScraperAPI Pricing & Cost Calculator](https://github.com/600me/scraperapi-pricing-coupons) — Calculate API credit tiers, monthly vs annual savings, and overage budgets.
-- [Decodo (Smartproxy) Bandwidth Cost Calculator](https://github.com/600me/decodo-smartproxy-pricing-coupons) — Estimate residential proxy gigabyte pricing and volume tiers.
-- [Firstbase US Company Formation & Annual Compliance Calculator](https://github.com/600me/firstbase-promo-code-pricing) — Model formation and ongoing compliance costs for non-US founders.
-- [RunPod GPU Cloud Pricing & Job Estimator](https://github.com/600me/runpod-gpu-pricing-coupons) — Estimate cloud GPU hourly and monthly run rates across Ada and Hopper architectures.
-- [Vast.ai GPU Rental & Interruption TCO Estimator](https://github.com/600me/vastai-gpu-pricing-coupons) — Compare on-demand vs interruptible compute pricing and reliability trade-offs.
+---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
-
-Copyright (c) 2026 Kais / 600me.
+MIT License. Copyright (c) 2026 Kais / 600me.

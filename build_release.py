@@ -2,8 +2,8 @@
 """Build a PEP 427-compliant wheel and an sdist for check-proxy-tax without external build tools.
 
 Outputs:
-  dist/check_proxy_tax-1.0.0-py3-none-any.whl
-  dist/check_proxy_tax-1.0.0.tar.gz
+  dist/check_proxy_tax-1.1.0-py3-none-any.whl
+  dist/check_proxy_tax-1.1.0.tar.gz
 
 Only the Python standard library is used, so the artifact is reproducible on any machine.
 """
@@ -16,7 +16,7 @@ import zipfile
 
 NAME = "check_proxy_tax"
 DIST = "check-proxy-tax"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DIST_DIR = os.path.join(ROOT, "dist")
 PKG_DIR = os.path.join(ROOT, "check_proxy_tax")

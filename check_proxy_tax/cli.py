@@ -23,7 +23,21 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
+
+# 2026 proxy brand benchmark used by --compare-providers.
+# price_per_1k is the nominal list price per 1,000 requests in USD.
+COMPARED_PROVIDERS = (
+    ("Decodo", "-web-shared", 0.84),
+    ("Webshare", "proxy-server", 0.80),
+    ("9Proxy", "residential", 0.90),
+    ("Pawns.app", "residential", 1.00),
+    ("PacketStream", "residential", 0.50),
+    ("ScraperAPI", "api-credit", 1.50),
+)
+
+# Blocked-rate scenarios simulated on top of each brand's nominal price.
+COMPARE_TAX_RATES = (0.0, 0.1, 0.3, 0.5)
 
 BENCHMARK_URL = (
     "https://scrape.mybskm.top/?utm_source=cli&utm_content=check-proxy-tax"
@@ -376,6 +390,80 @@ def _positive_float(value: str) -> float:
     return number
 
 
+def _compare_providers_data() -> List[Dict[str, object]]:
+    """Build the 6-brand benchmark rows for --compare-providers."""
+
+    rows: List[Dict[str, object]] = []
+    for name, plan, price_per_1k in COMPARED_PROVIDERS:
+        scenarios: Dict[str, Dict[str, float]] = {}
+        for rate in COMPARE_TAX_RATES:
+            usable_pct = (1.0 - rate) * 100.0
+            cost_per_1k_usable = price_per_1k / (usable_pct / 100.0)
+            scenarios["tax_{0:g}pct".format(rate * 100)] = {
+                "blocked_rate": rate,
+                "usable_rate": usable_pct,
+                "cost_per_1k_usable": round(cost_per_1k_usable, 4),
+                "cost_per_1m_usable": round(cost_per_1k_usable * 1000.0, 2),
+            }
+        rows.append(
+            {
+                "provider": name,
+                "plan": plan,
+                "nominal_price_per_1k": price_per_1k,
+                "scenarios": scenarios,
+            }
+        )
+    return rows
+
+
+def render_compare_table() -> str:
+    """Render the human-readable 403-tax benchmark comparison table."""
+
+    header = [
+        "PROVIDER",
+        "PLAN",
+        "NOMINAL/1K",
+    ] + [
+        "REAL/1M @{0:g}% BLOCKED".format(rate * 100) for rate in COMPARE_TAX_RATES
+    ]
+    widths = [len(col) for col in header]
+    body: List[List[str]] = []
+    for name, plan, price_per_1k in COMPARED_PROVIDERS:
+        cells = [name, plan, "${0:,.4f}".format(price_per_1k)]
+        for rate in COMPARE_TAX_RATES:
+            usable_pct = (1.0 - rate) * 100.0
+            cost_per_1m = price_per_1k / (usable_pct / 100.0) * 1000.0
+            cells.append("${0:,.2f}".format(cost_per_1m))
+        body.append(cells)
+        for index, cell in enumerate(cells):
+            widths[index] = max(widths[index], len(cell))
+
+    border = "+" + "+".join("-" * (width + 2) for width in widths) + "+"
+
+    def line(cells: Sequence[str]) -> str:
+        return (
+            "| "
+            + " | ".join(
+                "{0:<{1}}".format(cell, widths[index])
+                for index, cell in enumerate(cells)
+            )
+            + " |"
+        )
+
+    lines = [border, line(header), border]
+    for cells in body:
+        lines.append(line(cells))
+    lines.append(border)
+    lines.append("")
+    lines.append(
+        "REAL/1M = USD paid per 1,000,000 usable (HTTP 200 on-target) requests"
+        " at each blocked rate."
+    )
+    lines.append("Benchmark & provider matrix: {0}".format(BENCHMARK_URL))
+    lines.append(FTC_DISCLOSURE)
+    return "\n".join(lines)
+
+
 class _ArgumentParser(argparse.ArgumentParser):
     """Keep argument errors distinct from a run where every probe failed."""
 
@@ -397,6 +485,7 @@ def build_parser() -> argparse.ArgumentParser:
             "examples:\n"
             "  check-proxy-tax --url https://example.com/product --requests 20 \\\n"
             "      --marker \"Add to cart\" --price-per-1k 0.49\n"
+            "  check-proxy-tax --compare-providers\n"
             "  check-proxy-tax --url https://example.com --json > report.json\n"
             "\n"
             "exit codes:\n"
@@ -410,7 +499,13 @@ def build_parser() -> argparse.ArgumentParser:
             "{1}".format(BENCHMARK_URL, FTC_DISCLOSURE)
         ),
     )
-    parser.add_argument("--url", required=True, help="absolute http(s) URL to probe")
+    parser.add_argument("--url", default=None, help="absolute http(s) URL to probe")
+    parser.add_argument(
+        "--compare-providers",
+        action="store_true",
+        dest="compare_providers",
+        help="display 2026 proxy benchmark pricing and tax comparison table",
+    )
     parser.add_argument(
         "--requests",
         type=_positive_int,
@@ -479,6 +574,29 @@ def run_probe(
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.compare_providers:
+        if args.as_json:
+            print(
+                json.dumps(
+                    {
+                        "tool": "check-proxy-tax",
+                        "version": __version__,
+                        "benchmark_url": BENCHMARK_URL,
+                        "ftc_disclosure": FTC_DISCLOSURE,
+                        "providers": _compare_providers_data(),
+                    },
+                    indent=2,
+                    ensure_ascii=False,
+                    sort_keys=False,
+                )
+            )
+        else:
+            print(render_compare_table())
+        return 0
+
+    if args.url is None:
+        parser.error("--url is required unless --compare-providers is given")
 
     parsed_url = urllib.parse.urlsplit(args.url)
     if parsed_url.scheme not in ("http", "https") or not parsed_url.netloc:
