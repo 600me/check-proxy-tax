@@ -226,3 +226,13 @@ options:
 ## License
 
 MIT License. Copyright (c) 2026 Kais / 600me.
+
+
+---
+
+## 🌐 Official Documentation, Docker Image & Web Calculators
+
+* **Official Technical Manual (Read the Docs, DA 92)**: [residential-proxy-and-scraping-tax-benchmark](https://cloud-infra-tco-benchmarks.readthedocs.io/en/latest/residential-proxy-and-scraping-tax-benchmark/)
+* **Production Docker Container (Docker Hub, DA 93)**: [600megd/proxy-tax-calculator](https://hub.docker.com/r/600megd/proxy-tax-calculator)
+* **Interactive Live Calculator**: [Web Benchmark & TCO Estimator](https://proxy.mybskm.top/)
+* **Interactive Documentation Portal**: [Proxy & Infrastructure Docs](https://proxy.mybskm.top/docs/)
