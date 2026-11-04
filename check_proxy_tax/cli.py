@@ -46,7 +46,7 @@ FTC_DISCLOSURE = (
     "FTC Disclosure: Benchmark links may include affiliate tracking."
 )
 USER_AGENT = (
-    "check-proxy-tax/{0} (+https://github.com/600me/check-proxy-tax)".format(
+    "check-proxy-tax/{0} (+https://pypi.org/project/check-proxy-tax/)".format(
         __version__
     )
 )

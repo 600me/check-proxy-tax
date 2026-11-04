@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/600me/check-proxy-tax.git"
+    "url": "git+https://pypi.org/project/check-proxy-tax/.git"
   },
   "keywords": [
     "web-scraping",
@@ -21,10 +21,10 @@
     "cost-calculator",
     "residential-proxy"
   ],
-  "author": "600me",
+  "author": "CloudBench Contributors",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/600me/check-proxy-tax/issues"
+    "url": "https://pypi.org/project/check-proxy-tax//issues"
   },
   "homepage": "https://scrape.mybskm.top/?utm_source=npx&utm_content=check-proxy-tax",
   "engines": {

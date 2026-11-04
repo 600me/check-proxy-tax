@@ -9,7 +9,7 @@ description = "CLI tool to audit real proxy costs, 403 blowout multipliers, and 
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
-authors = [{ name = "Kais / 600me" }]
+authors = [{ name = "CloudBench Contributors" }]
 keywords = [
     "proxy",
     "scraping",
@@ -44,9 +44,9 @@ dev = ["build>=1.0", "twine>=4.0"]
 check-proxy-tax = "check_proxy_tax.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/600me/check-proxy-tax"
-Repository = "https://github.com/600me/check-proxy-tax"
-Issues = "https://github.com/600me/check-proxy-tax/issues"
+Homepage = "https://pypi.org/project/check-proxy-tax/"
+Repository = "https://pypi.org/project/check-proxy-tax/"
+Issues = "https://pypi.org/project/check-proxy-tax//issues"
 Benchmark = "https://scrape.mybskm.top/?utm_source=cli&utm_content=check-proxy-tax"
 
 [tool.setuptools]
