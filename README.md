@@ -7,6 +7,22 @@
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](#install)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+## ⚡ The Quick Verdict & 2026 Tier-by-Tier Checkout Matrix (TL;DR)
+
+- **Pick [ScraperAPI](https://go.272738.xyz/scraperapi?src=pypi_check_proxy_tax) if** you want a managed unblocker API that handles Cloudflare Turnstile, DataDome, CAPTCHAs, and JS rendering automatically — [**Start your 5,000-credit free trial (no credit card required) →**](https://go.272738.xyz/scraperapi?src=pypi_check_proxy_tax_trial).
+- **Pick [Decodo (Smartproxy)](https://go.272738.xyz/decodo?src=pypi_check_proxy_tax) if** you run your own Playwright/curl workers and want the lowest $/GB residential proxy pool (125M+ IPs, 99.9% uptime) — [**Claim 50% OFF with code `HELLODECODO` →**](https://go.272738.xyz/decodo?src=pypi_check_proxy_tax_code).
+
+| Provider & Plan Tier | Monthly / Unit Price | Annual / Promo Rate | Included Volume | Verified Promo Code / Offer | Direct Checkout / Trial |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **ScraperAPI — Free Trial** | **$0** (7 days) | **$0** | 5,000 API Credits | **No credit card required** | [**Start 5,000-Credit Trial →**](https://go.272738.xyz/scraperapi?src=pypi_check_proxy_tax_trial) |
+| **ScraperAPI — Hobby Plan** | $49.00/mo | **$44.10/mo** (10% OFF) | 100,000 API Credits | Code `START10` (10% off 1st mo) | [**Get Hobby Plan →**](https://go.272738.xyz/scraperapi?src=pypi_check_proxy_tax_hobby) |
+| **ScraperAPI — Startup Plan** | $149.00/mo | **$134.10/mo** (10% OFF) | 1,000,000 API Credits | Code `START10` + 10% Annual OFF | [**Get Startup Plan →**](https://go.272738.xyz/scraperapi?src=pypi_check_proxy_tax_startup) |
+| **Decodo (Smartproxy) — Pay As You Go** | $3.50/GB | Pay-per-GB (no lock-in) | 125M+ Residential IPs | Code `HELLODECODO` (**50% OFF**) | [**Get Decodo PAYG →**](https://go.272738.xyz/decodo?src=pypi_check_proxy_tax) |
+| **Decodo (Smartproxy) — 100GB Growth** | $275.00/mo | **$200.00/mo** ($2.00/GB) | 100 GB Residential Pool | Code `HELLODECODO` + `RESI50` | [**Get 100GB Growth Plan →**](https://go.272738.xyz/decodo?src=pypi_check_proxy_tax_100gb) |
+| **IPRoyal — Non-Expiring Residential** | $3.50/GB (10 GB) | **$1.75/GB** (Bulk 50% OFF) | Traffic never expires | **50% OFF** Auto-Applied via Partner Link | [**Get Non-Expiring GB →**](https://go.272738.xyz/iproyal?src=pypi_check_proxy_tax) |
+
+> **FTC Disclosure: Benchmark links may include affiliate tracking.** Some outbound vendor links (via `go.272738.xyz`, such as ScraperAPI, Decodo/Smartproxy, IPRoyal, 9Proxy, Pawns.app, and PacketStream) are affiliate links that may earn a commission at no extra cost to you.
+
 Proxy invoices are priced per gigabyte, per IP, or per nominal request. Your production pipelines are not paid in raw network attempts; they are paid in responses they can actually parse and use.
 
 When an edge gateway returns `403 Forbidden`, stalls on Cloudflare challenges until connection timeout, or returns HTTP `200` containing an empty consent screen, **your provider still bills you for the bandwidth or request slot**. The financial gap between advertised unit prices and the true cost of usable data is **The 403 Tax**.
@@ -44,7 +60,7 @@ Below is the verified price and 403-Tax sensitivity matrix across the top 6 resi
 | Provider | Core Strength | Tier 1 (Starter) | Tier 2 (Growth) | Tier 3 (Pro) | Tier 4 (Business) | Tier 5 (Enterprise) | Verified Gateway |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Decodo (Smartproxy)** | 65M+ Residential IPs, 99.9% uptime, City targeting | $4.50 / GB | $3.50 / GB (25 GB) | $2.80 / GB (100 GB) | $2.20 / GB (500 GB) | $1.80 / GB (1 TB+) | [Explore Decodo Tier Plans](https://go.272738.xyz/decodo?src=pypi_check_proxy_tax) |
-| **Webshare** | Budget-first private & rotating datacenter / residential | $2.99 / mo (100 IPs) | $1.50 / GB (Residential) | $1.00 / GB (50 GB) | $0.85 / GB (250 GB) | Custom Dedicated Subnets | [Explore Webshare Tier Plans](https://go.272738.xyz/webshare?src=pypi_check_proxy_tax) |
+| **IPRoyal** | Non-expiring residential traffic & static ISP proxies | $3.50 / GB (10 GB) | $2.80 / GB (50 GB) | $2.45 / GB (100 GB) | $1.75 / GB (Bulk 50% OFF) | Custom Non-Expiring Pool | [Explore IPRoyal Tier Plans](https://go.272738.xyz/iproyal?src=pypi_check_proxy_tax) |
 | **ScraperAPI** | Zero-block unblocker API, handles JS rendering & CAPTCHAs | $49 / mo (100k API reqs) | $149 / mo (1M API reqs) | $299 / mo (3M API reqs) | $999 / mo (14M API reqs) | Dedicated Edge Endpoints | [Explore ScraperAPI Tier Plans](https://go.272738.xyz/scraperapi?src=pypi_check_proxy_tax) |
 | **9Proxy** | Clean residential pool, pay-per-IP without monthly expiration | $0.20 / IP (Starter 100 IPs) | $0.15 / IP (500 IPs) | $0.11 / IP (1,000 IPs) | $0.08 / IP (5,000 IPs) | $0.05 / IP (10,000+ IPs) | [Explore 9Proxy Tier Plans](https://go.272738.xyz/9proxy?src=pypi_check_proxy_tax) |
 | **Pawns.app** | 100% peer-to-peer real residential ethical consumer devices | $3.00 / GB | $2.50 / GB (10 GB) | $2.00 / GB (50 GB) | $1.50 / GB (200 GB) | Custom Bulk Matrix | [Explore Pawns.app Tier Plans](https://go.272738.xyz/pawns?src=pypi_check_proxy_tax) |
@@ -72,6 +88,8 @@ Assuming a baseline nominal target rate of $0.50 per 1,000 requests ($500.00 / 1
 ```bash
 pip install check-proxy-tax --upgrade
 ```
+
+Or from a local checkout: `pip install .`
 
 Verify the installation:
 
